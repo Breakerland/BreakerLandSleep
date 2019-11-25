@@ -1,7 +1,7 @@
 name: BreakerLandSleep
-main: fr.breakerland.breakerlandsleep
+main: fr.breakerland.breakerlandsleep.BreakerLandSleep
 api-version: 1.13
-version: 1.0
+version: 1.1
 description: Skip the night !
 authors: [LLIcocoman_Hrz, AzodFR]
 
@@ -9,3 +9,15 @@ commands:
   cancel:
     description: Cancel the skip!
     permission: breakerlandsleep.cancel
+permissions:
+  breakerlandsleep.cancel:
+   default: true
+   description: Allows to cancel skipping the night
+  breakerlandsleep.sleep:
+   default: true
+   description: Allows to skip
+  breakerlandsleep.*:
+   description: Wildcard permission
+   children:
+     breakerlandsleep.cancel: true
+     breakerlandsleep.sleep: true

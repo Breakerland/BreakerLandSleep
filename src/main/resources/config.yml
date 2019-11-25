@@ -2,12 +2,13 @@
 sleepCooldown: 60
 # Time in seconds before night/storm/thunder is skip
 sleepTime: 10
+# The tick time to skip the night
 
 # Messages
-cooldownMessage: &cYou need to wait before to use your bed again!
-cancelledMessage: &cSkipping night already cancelled!
-cancelMessage: &eThe night skipping was canceled by %player%.
-cancel: &f[&4CANCEL&f]
-cancelHover: Click to cancel
+cooldownMessage: '&cYou need to wait before to use your bed again!'
+cancelledMessage: '&cSkipping night already cancelled!'
+cancelMessage: '&eThe night skipping was canceled by %player%.'
+cancel: '&f[&4CANCEL&f]'
+cancelHover: 'Click to cancel'
 sleepingMessages:
-- Ssshhh ! %player% is sleeping... %cancel%
+- 'Ssshhh! %player% is sleeping... %cancel%'

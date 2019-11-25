@@ -1,0 +1,11 @@
+name: BreakerLandSleep
+main: fr.breakerland.breakerlandsleep
+api-version: 1.13
+version: 1.0
+description: Skip the night !
+authors: [LLIcocoman_Hrz, AzodFR]
+
+commands:
+  cancel:
+    description: Cancel the skip!
+    permission: breakerlandsleep.cancel

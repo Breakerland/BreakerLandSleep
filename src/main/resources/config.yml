@@ -6,7 +6,8 @@ sleepTime: 10
 
 # Messages
 cooldownMessage: '&cYou need to wait before to use your bed again!'
-cancelledMessage: '&cSkipping night already cancelled!'
+noCancel: '&cNobody is sleeping.'
+alreadyCancel: '&cSkipping night already cancelled.'
 cancelMessage: '&eThe night skipping was canceled by %player%.'
 cancel: '&f[&4CANCEL&f]'
 cancelHover: 'Click to cancel'

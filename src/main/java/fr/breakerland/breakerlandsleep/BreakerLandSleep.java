@@ -47,8 +47,10 @@ public class BreakerLandSleep extends JavaPlugin implements CommandExecutor, Lis
 			return false;
 
 		BukkitTask task = tasks.get( ((Player) sender).getWorld().getUID());
-		if (task == null || task.isCancelled())
-			sender.sendMessage(parseColor(getConfig().getString("canceledMessage", "Skipping night already canceled.")));
+		if (task == null)
+			sender.sendMessage(parseColor(getConfig().getString("noCancel", "&cNobody is sleeping.")));
+		else if (task.isCancelled())
+			sender.sendMessage(parseColor(getConfig().getString("alreadyCancel", "&cSkipping night already canceled.")));
 		else {
 			getServer().broadcastMessage(parseColor(getConfig().getString("cancelMessage", "&eThe night skipping was canceled by %player%.").replaceFirst("%player%", sender.getName())));
 			task.cancel();

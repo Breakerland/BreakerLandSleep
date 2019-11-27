@@ -1,7 +1,7 @@
 name: BreakerLandSleep
 main: fr.breakerland.breakerlandsleep.BreakerLandSleep
 api-version: 1.13
-version: 1.1
+version: 1.2
 description: Skip the night !
 authors: [LLIcocoman_Hrz, AzodFR]
 

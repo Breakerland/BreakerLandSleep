@@ -3,6 +3,7 @@ sleepCooldown: 60
 # Time in seconds before night/storm/thunder is skip
 sleepTime: 10
 # The tick time to skip the night
+skipTime: 0
 
 # Messages
 cooldownMessage: '&cYou need to wait before to use your bed again!'

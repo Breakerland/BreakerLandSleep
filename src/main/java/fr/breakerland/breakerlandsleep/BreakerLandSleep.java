@@ -1,9 +1,11 @@
 package fr.breakerland.breakerlandsleep;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.World;
@@ -14,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -26,6 +29,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class BreakerLandSleep extends JavaPlugin implements CommandExecutor, Listener {
 	final Map<UUID, Long> cooldown = new HashMap<>();
 	final Map<UUID, BukkitTask> tasks = new HashMap<>();
+	final Map<UUID, Set<UUID>> sleeping = new HashMap<>();
 	final Random random = new Random();
 
 	@Override
@@ -43,7 +47,7 @@ public class BreakerLandSleep extends JavaPlugin implements CommandExecutor, Lis
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (! (sender instanceof Player) || !sender.hasPermission("breakerbed.cancel"))
+		if (! (sender instanceof Player) || !sender.hasPermission("breakersleep.cancel"))
 			return false;
 
 		BukkitTask task = tasks.get( ((Player) sender).getWorld().getUID());
@@ -60,49 +64,64 @@ public class BreakerLandSleep extends JavaPlugin implements CommandExecutor, Lis
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void PlayerEnterBed(PlayerBedEnterEvent event) {
+	public void onPlayerEnterBed(PlayerBedEnterEvent event) {
 		Player player = event.getPlayer();
 		if (!player.hasPermission("breakerlandsleep.sleep") || ! (getServer().getOnlinePlayers().size() > 1))
 			return;
 
-		Long time,
+		Long time = cooldown.get(player.getUniqueId()),
 				now = System.currentTimeMillis();
-		if ( (time = cooldown.get(player.getUniqueId())) != null && time < now) {
-			player.sendMessage(parseColor(getConfig().getString("cooldownMessage", "You need to wait before to use your bed again.")));
+		if (time != null && time < now) {
+			player.sendMessage(parseColor(getConfig().getString("cooldownMessage", "&cYou need to wait before to use your bed again.")));
 			return;
 		} else
-			cooldown.put(player.getUniqueId(), now);
+			cooldown.put(player.getUniqueId(), now + 20 * getConfig().getInt("sleepCooldown", 60));
 
 		World world = player.getWorld();
 		BukkitTask task = null;
-		if ( (world.getTime() >= 13000 || world.isThundering() || world.hasStorm()) && ( (task = tasks.get(world.getUID())) == null || task.isCancelled())) {
-			tasks.put(world.getUID(), getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
-				if (world.getTime() >= 13000)
-					world.setTime(0);
+		if (world.getTime() >= 13000 || world.isThundering() || world.hasStorm()) {
+			UUID worldId = world.getUID();
+			if ( (task = tasks.get(worldId)) == null || task.isCancelled()) {
+				tasks.put(worldId, getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+					if (world.getTime() >= 13000)
+						world.setTime(getConfig().getInt("skipTime", 0));
 
-				if (world.isThundering())
-					world.setThundering(false);
+					if (world.isThundering())
+						world.setThundering(false);
 
-				if (world.hasStorm())
-					world.setStorm(false);
+					if (world.hasStorm())
+						world.setStorm(false);
 
-				tasks.remove(world.getUID());
-			}, 20 * getConfig().getInt("sleepTime", 10)));
+					cooldown.clear();
+					tasks.remove(worldId);
+				}, 20 * getConfig().getInt("sleepTime", 10)));
 
-			List<String> messages = getConfig().getStringList("sleepingMessages");
-			String[] message = parseColor(messages.get(random.nextInt(messages.size())).replaceFirst("%player%", player.getName())).split("%cancel%");
-			TextComponent component = new TextComponent(message[0]);
-			TextComponent cancel = new TextComponent(parseColor(getConfig().getString("cancel", "&f[&4CANCEL&f]")));
-			cancel.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cancel"));
-			cancel.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(parseColor(getConfig().getString("cancelHover", "Click to cancel"))).create()));
-			component.addExtra(cancel);
-			if (message.length > 1)
-				component.addExtra(parseColor(message[1]));
+				List<String> messages = getConfig().getStringList("sleepingMessages");
+				String[] message = parseColor(messages.get(random.nextInt(messages.size())).replaceFirst("%player%", player.getName())).split("%cancel%");
+				TextComponent component = new TextComponent(message[0]);
+				TextComponent cancel = new TextComponent(parseColor(getConfig().getString("cancel", "&f[&4CANCEL&f]")));
+				cancel.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cancel"));
+				cancel.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(parseColor(getConfig().getString("cancelHover", "Click to cancel"))).create()));
+				component.addExtra(cancel);
+				if (message.length > 1)
+					component.addExtra(parseColor(message[1]));
 
-			for (Player players : getServer().getOnlinePlayers())
-				if (!players.equals(player) && players.hasPermission("breakerlandsleep.cancel"))
-					players.spigot().sendMessage(component);
+				for (Player players : getServer().getOnlinePlayers())
+					if (!players.equals(player) && players.hasPermission("breakerlandsleep.cancel"))
+						players.spigot().sendMessage(component);
+			} else if (task != null && !task.isCancelled())
+				sleeping.getOrDefault(worldId, new HashSet<>()).add(player.getUniqueId());
 		}
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerLeaveBed(PlayerBedLeaveEvent event) {
+		BukkitTask task;
+		Player player = event.getPlayer();
+		Set<UUID> sleeping = this.sleeping.getOrDefault(player.getWorld().getUID(), new HashSet<>());
+		if (sleeping.remove(player.getUniqueId()) && ! (sleeping.size() > 0) && (task = tasks.get(player.getWorld().getUID())) != null)
+			task.cancel();
+
 	}
 
 	private String parseColor(String input) {

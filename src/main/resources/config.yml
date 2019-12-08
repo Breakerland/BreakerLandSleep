@@ -13,4 +13,4 @@ cancelMessage: '&eThe night skipping was canceled by %player%.'
 cancel: '&f[&4CANCEL&f]'
 cancelHover: 'Click to cancel'
 sleepingMessages:
-- 'Ssshhh! %player% is sleeping... %cancel%'
+- '&eSsshhh! %player% is sleeping... %cancel%'

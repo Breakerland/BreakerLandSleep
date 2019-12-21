@@ -48,7 +48,7 @@ public class Sleep extends JavaPlugin implements CommandExecutor, Listener {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (! (sender instanceof Player) || !sender.hasPermission("breakerlandsleep.cancel"))
+		if (! (sender instanceof Player) || !sender.hasPermission("sleep.cancel"))
 			return false;
 
 		BukkitTask task = tasks.get( ((Player) sender).getWorld().getUID());
@@ -67,7 +67,7 @@ public class Sleep extends JavaPlugin implements CommandExecutor, Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerEnterBed(PlayerBedEnterEvent event) {
 		Player player = event.getPlayer();
-		if (!player.hasPermission("breakerlandsleep.sleep") || ! (getServer().getOnlinePlayers().size() > 1))
+		if (!player.hasPermission("sleep.sleep") || ! (getServer().getOnlinePlayers().size() > 1))
 			return;
 
 		Long time = cooldown.get(player.getUniqueId()),
@@ -104,7 +104,7 @@ public class Sleep extends JavaPlugin implements CommandExecutor, Listener {
 					component.addExtra(parseColor(message[1]));
 
 				for (Player players : getServer().getOnlinePlayers())
-					if (!players.equals(player) && players.hasPermission("breakerlandsleep.cancel"))
+					if (!players.equals(player) && players.hasPermission("sleep.cancel"))
 						players.spigot().sendMessage(component);
 			} else if (task != null && !task.isCancelled())
 				sleeping.getOrDefault(worldId, new HashSet<>()).add(player.getUniqueId());
